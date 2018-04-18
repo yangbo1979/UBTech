@@ -9,14 +9,14 @@ from enum import Enum
 class UBTech:
     'UBTech Robot BlueTooth Communication Protocol'
     ser=None
-    serial_port = 1
+    serial_port = '1'
     #serial_port="/dev/ttyUSB0"
     #serial_port=5#serial_port = 8  means serial id 9 in windows
     serial_timeout=1
     serial_baud = 256000
     def __init__(self,port):
         UBTech.serial_port = port
-        ser = serial.Serial(port=serial_port, baudrate=serial_baud, bytesize=8, parity="N", stopbits=1, xonxoff=0)
+        UBTech.ser = serial.Serial(port=UBTech.serial_port, baudrate=UBTech.serial_baud, bytesize=8, parity="N", stopbits=1, xonxoff=0)
 
     #BT握手机器
     def handShack(self):
@@ -75,7 +75,9 @@ class UBTech:
         arg = []
         for i in angles:
             arg.append(hex(i))
-        arg.append([hex(int(time/20)),hex(int(timeout/20)//256),hex(int(timeout/20)%256)])
+        for i in [hex(int(time/20)),hex(int(timeout/20)//256),hex(int(timeout/20)%256)]:
+            arg.append(i)
+        #print(arg)
         self.__sendCmd(COMMAND.controlMultiServo,arg)
     #回读单个舵机角度（掉电）
     def getServoAngle(self,id):
@@ -107,6 +109,10 @@ class UBTech:
     def getUDID(self):
         self.__sendCmd(COMMAND.getUDID)
 
+    #断开连接
+    def disconnect(self):
+        UBTech.ser.close()
+
 
 
 
@@ -123,7 +129,8 @@ class UBTech:
         chk = chk%256
         result.append(hex(chk))
         result.append(hex(0xed))
-        ser.write(result)
+        bytes = bytearray(int(x, 16) for x in result)
+        UBTech.ser.write(bytes)
         #print(result)
 
 
